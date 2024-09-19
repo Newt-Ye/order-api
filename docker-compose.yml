@@ -1,0 +1,56 @@
+services:
+  php-apache:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-php-apache
+    volumes:
+      - .:/var/www/html
+      - ./docker/apache/apache.conf:/etc/apache2/sites-available/000-default.conf
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    networks:
+      - laravel-network
+
+  mysql:
+    image: mysql:5.7
+    platform: linux/x86_64
+    container_name: laravel-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: orders
+      MYSQL_USER: user
+      MYSQL_PASSWORD: secret
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - laravel-network
+
+  adminer:
+    image: adminer
+    container_name: laravel-adminer
+    ports:
+      - "8081:8080"  # Adminer 將通過 http://localhost:8081 訪問
+    depends_on:
+      - mysql
+    networks:
+      - laravel-network
+
+  redis:
+    image: redis:alpine
+    container_name: laravel-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - laravel-network
+
+networks:
+  laravel-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
